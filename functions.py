@@ -85,6 +85,7 @@ def average_thread (table, col_name,nb_thread):
 def projection (table, cols_names):
     return table[cols_names]
 
+# Performs a projection without duplicates
 def distinct (table, cols_names):
     tmp = projection(table, cols_names)
     added = []; to_add = []
@@ -122,6 +123,13 @@ def distinct_thread(table, cols_names, nb_thread):
         list_of_threads[i].join()
     return pd.DataFrame(data=to_add, columns=table.columns)
 
+'''Group by
+    Args :
+    table -- pandas.DataFrame
+    cols_names -- list column names to add to our returning dataframe
+    funs -- list of tuples of (function name, column name to apply the function on)
+    to_gb -- list of column names to group by
+'''
 def group_by (table, cols_names, funs, to_gb):
     to_add = []; deja_vu = []
     for i in range(len(table)):
@@ -147,6 +155,14 @@ def group_by_thread (table, cols_names, funs, to_gb,nb_thread):
     to_add_cols_names = cols_names + [col_name for f, col_name in funs]
     return pd.DataFrame(data=to_add, columns=to_add_cols_names)
 
+'''Selection
+    Args :
+    table -- pandas.DataFrame
+    col -- list of column names
+    equality -- list of binary operations, one operation is for example ">="
+    cond -- list of conditions on columns
+    In SQL, it would look like "WHERE col[i] equality[i] cond[i]" for each i
+'''
 def selection(table,col,equality,cond):
     to_add = []
     for i in table.index.array:
@@ -183,6 +199,14 @@ def selection_thread(table, col_name, equality, cond, nb_thread):
             res=pd.concat([res,list_of_threads[i].join()])
     return res
 
+'''Selection by attributes
+    Args :
+    table -- pandas.DataFrame
+    cols1 -- list of column names
+    operations -- list of binary operations, one operation is for example ">="
+    cols2 -- list of column names
+    In SQL, it would look like "WHERE cols1[i] operations[i] cols2[i]" for each i
+'''
 def selection_attributes(table, cols1, operations, cols2):
     to_add = []
     table.reset_index(inplace=True, drop=True)
@@ -244,6 +268,13 @@ def colname_to_index (table, col_name):
             return i
     return -1
 
+'''Hash Join
+    Args :
+    table1 -- pandas.DataFrame
+    index1 -- int of string representing the column to join by in table1
+    table2 -- pandas.DataFrame
+    index2 -- int of string representing the column to join by in table2
+'''
 def hash_join (table1, index1, table2, index2, by_col_name=True):
     if by_col_name:
         index1 = colname_to_index(table1, index1)
